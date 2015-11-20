@@ -1,3 +1,4 @@
 ENV/*
 first_python/*
 basic learning/*
+*.pyc
