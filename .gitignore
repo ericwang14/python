@@ -1,4 +1,5 @@
 *.pyc
+*.swp
 ENV/*
 first_python/*
 basic learning/*
