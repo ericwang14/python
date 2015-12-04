@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p>WELCOME TO DTSS</P>
+<p class='error'> {{ error}}</>
+<form action='{% url 'dtss:login' %}' method='POST'>
+    {% csrf_token %}
+    <label>Please enter your email address:</label>
+    <input type='email' name='email' id='email'/>
+    <input type='submit' name='submit' id='submit' />
+</form>
+{% endblock content %}
+

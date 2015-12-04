@@ -1,0 +1,16 @@
+{% load staticfiles %}
+<html>
+    <head>
+        {% block style %}
+        <link rel="stylesheet" href="{% static 'dtss/style.css' %}" />
+        {% endblock style %}
+        <title>{% block title %}DTSS {% endblock title %}</title>
+    </head>
+
+    <body>
+        <div id="content">
+            {% block content %}{% endblock content %}
+        </div>
+    </body>
+</html>
+{% debug %}

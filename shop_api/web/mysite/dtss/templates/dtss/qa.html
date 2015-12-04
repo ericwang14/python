@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<p>WELCOME {{ email }}</p>
+
+<form action="{% url 'dtss:question' next %}" method="POST">
+    {% csrf_token %}
+    <P>{{ counter }}.  Please pick the one best benefit of the product "{{ product.benifits|random|safe }}"?</p>
+    <ul>
+        {% for r_p in random_products %}
+        <li>
+            <input type='radio' name='answer' value="{{ r_p.name }}"> {{r_p.name|safe }} </input>
+        </li>
+        {% endfor %}
+    </ul>
+
+    {% if not_correct %}
+    <p class="error"> Your selected answer {{answer}} not right, the right answer is {{ right_answer }}
+    {% elif correct %}
+    <p class="green"> Your answer {{ answer }} is right.
+    {% endif %}
+    <input type="submit" name=submit" value="Next Question" />
+</form>
+{% endblock content %}
