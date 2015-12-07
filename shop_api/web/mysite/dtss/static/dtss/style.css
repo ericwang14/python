@@ -1,3 +1,9 @@
 .error {
     color: red;
 }
+.green {
+    color: green;
+}
+.result_area {
+    display: none;
+}

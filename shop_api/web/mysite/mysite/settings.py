@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+DAJAXICE_MEDIA_PREFIX="dajaxice"
+
 
 # Application definition
 

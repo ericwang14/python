@@ -11,13 +11,12 @@ parse product benifit string and build new benifit array
 """
 
 
-def parse():
-    products = product_search.get_products()
+def parse(categories):
+    products = product_search.get_products(categories)
     for product in products:
         try:
             if "benifits" in product:
                 selector = etree.HTML(product['benifits'])
-                #print selector.xpath('//ul/li/text()')
                 product['benifits'] = selector.xpath('//ul/li/text()')
         except KeyError as e:
             print e

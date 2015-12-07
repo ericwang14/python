@@ -1,5 +1,5 @@
 #! /usr/bin/python
-#--* encoding=utf-8 --*--
+# --* encoding=utf-8 --*--
 
 from django.db import models
 
@@ -7,7 +7,9 @@ from django.db import models
 
 
 class User(models.Model):
-    email = models.CharField(max_length=200)
+    email = models.CharField(max_length=200, null=True)
     score = models.IntegerField(default=0)
     duration = models.IntegerField(default=0)
+    start_date = models.DateTimeField(null=True)
+    end_date = models.DateTimeField(null=True)
     creation_date = models.DateTimeField()

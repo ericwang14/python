@@ -1,74 +1,145 @@
+#! /usr/bin/python
+# --*-- encoding=UTF-8 --*--
+
 from django.shortcuts import render
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.utils import timezone
 from django.core.urlresolvers import reverse
-from django.http import Http404
-
 from .models import User
 
+import smtplib
+import string
 import random
+import json
 import parse_product
+
+"""
+DTSS main view controller
+
+workflow
+
+Index page --> start game --> pick up categories --> answer question 1 ~ 10 --> result & submit email --> save
+
+@author ericw
+@since 12/01/15
+"""
+
 
 # Create your views here.
 
+sender = "yeak2002@gmail.com"
+pwd = "wanggang1224"
+category_list = ['isotonix', 'motives', 'snap', 'tls', 'prime',
+                 'fixx', 'DNA Miracles', 'Cellular Laboratories']
+
+
 def index(request):
-    users = User.objects.order_by('score', 'duration')
-    return render(request, 'dtss/index.html', {'users': users,})
+    request.session.clear()
+    request.session.clear_expired()
+
+    users = User.objects.filter(email__isnull=False).order_by('-score', '-duration')
+    return render(request, 'dtss/index.html', {'users': users, })
+
 
 def login(request):
-    if not 'email' in request.POST:
-        return render(request, 'dtss/login.html')
-    if (request.session.get('email')):
-        return HttpResponseRedirect(reverse('dtss:question', args=(1,)))
+    """
+    create user info and send mail to user
+    :param request:  request object
+    :return:
+    """
     try:
         email = request.POST['email']
         if not email:
-            return render(request, 'dtss/login.html', {'error': 'Please enter email first!'})
-        create_date = timezone.now()
-        user = User(email=email, creation_date=timezone.now())
+            return render(request, 'dtss/results.html', {'error': 'Please enter email first!'})
+        user = User.objects.get(pk=request.session.get("user_id"))
+        user.email = email
         user.save()
-        request.session.set_expiry(600) # session will exipred after 10 mins
-        request.session['email'] = email
-        request.session['user_id'] = user.id
-        _load_product(request)
+        send_mail(user)
     except KeyError:
-        return render(request, reverse('dtss:login'), {'error': 'Please enter email first!'})
-    return HttpResponseRedirect(reverse('dtss:question', args=(1,)))
+        return render(request, reverse('dtss:results'), {'error': 'Please enter email first!'})
+    return HttpResponseRedirect(reverse('dtss:index'))
+
+
+def send_mail(user):
+    """
+    send mail to user
+    :param user: user object
+    :return: None
+    """
+    smtp_server = smtplib.SMTP('smtp.gmail.com', 587)
+    smtp_server.ehlo()
+    smtp_server.starttls()
+    smtp_server.login(sender, pwd)
+
+    text = """Your score is {0}, duration seconds {1}, you can go to http://www.shop.com to finish your registration.""".format(
+        str(user.score), str(user.duration))
+
+    message = string.join((
+        "From: %s" % sender,
+        "To: %s" % user.email,
+        "Subject: Your DTSS game score!",
+        "",
+        text,
+        ), "\r\n")
+
+    message = message.format(sender, user.email, str(user.score), str(user.duration))
+
+    smtp_server.sendmail(sender, user.email, message)
+    smtp_server.close()
+
 
 def main_question(request, question_id):
-    if (not request.session.get('email')):
+    """
+    question controller
+    :param request:     request object
+    :param question_id: question id
+    :return:
+    """
+    selected_categories = request.POST.getlist('categories')
+    if selected_categories:
+        _load_product(request, selected_categories)
+
+    if not request.session.get('products', None):
         return HttpResponseRedirect(reverse('dtss:index'))
 
-    if (int(question_id) <= 0):
-      #  request.session['end_time'] = timezone.now()
-        raise Http404("Page Not Found")
+    if int(question_id) <= 1:
+        user = User(creation_date=timezone.now(), start_date=timezone.now())
+        user.save()
+        request.session['user_id'] = user.id
 
-    if (int(question_id) > 10):
+    if int(question_id) <= 0:
+        return HttpResponseRedirect(reverse('dtss:question', args=(1,)))
+
+    if int(question_id) > 10:
         _update_question_answer(request, int(question_id))
+
+        user = User.objects.get(pk=request.session.get("user_id"))
+        user.end_date = timezone.now()
+        user.save()
+
         return HttpResponseRedirect(reverse('dtss:results'))
-    
-    email = request.session.get('email')
+
     products = request.session.get('products')
     product = random.choice(products)
     while 'benifits' not in product or len(product['benifits']) <= 0:
         product = random.choice(products)
-    
-    r_products =  random.sample([product] + build_random_product(products), 4)
 
     product['benifit'] = random.choice(product['benifits'])
+
+    benifits = [product['benifit']] + build_random_benefits(products)
+
     context = {
         'counter': question_id,
-        'next': int(question_id)+1,
-        'email': email,
+        'next': int(question_id) + 1,
         'product': product,
-        'random_products': r_products
+        'benifits': random.sample(benifits, 4)
     }
-    request.session[question_id] = {'right_product': product,}
-    
+    request.session[question_id] = {'right_product': product, }
+
     _update_question_answer(request, int(question_id))
 
-
     return render(request, 'dtss/qa.html', context)
+
 
 def _update_question_answer(request, question_id):
     """
@@ -76,40 +147,82 @@ def _update_question_answer(request, question_id):
     """
     if question_id == 1:
         return
-    question_id = question_id - 1
-    #answer = 'TLS Detox Kit'
+    question_id -= 1
     answer = request.POST.get('answer', None)
-    if (question_id == 10):
-        answer = 'asdfasdf'
-    #if (request.session.get(str(question_id)) and answer):
-    request.session.get(str(question_id))['answer'] = answer
+    right_product = request.session.get(str(question_id))['right_product']
+    if answer and answer == right_product['benifit']:
+        request.session.get(str(question_id))['is_correct'] = True
 
-def _load_product(request):
+
+def _load_product(request, selected_categories):
     """
-    if products dataset existing in session return it
+    if products dataSet existing in session return it
     otherwise load it and store it in session
     """
     products = request.session.get('products')
-    if (not products):
-        products = parse_product.parse()
+    if not products:
+        products = parse_product.parse(selected_categories)
         request.session['products'] = products
     return products
 
 
 def results(request):
-    user = User.objects.get(pk=request.session.get('user_id'))
-    user.score = _check_score(request)
+    score = _check_score(request)
+    user = User.objects.get(pk=request.session.get("user_id"))
+    duration = (user.end_date - user.start_date).seconds
+    user.score = score
+    user.duration = duration
     user.save()
-    return render(request, 'dtss/results.html', {'email': user.email, 'user': user, })
+
+    return render(request, 'dtss/results.html', {'score': score, 'duration': duration})
+
 
 def _check_score(request):
-    score = 1
+    score = 0
     for i in range(1, 11):
         product_answer = request.session.get(str(i))
-        if ('answer' in product_answer and product_answer['right_product']['name'] == product_answer['answer']):
-           score += 1
+        if product_answer.get("is_correct"):
+            score += 1
     return score
 
-def build_random_product(products):
-    r_products = random.sample(products, 3)
-    return r_products
+
+def build_random_benefits(products):
+    benefits = []
+    for i in range(1, 4):
+        product = random.choice(products)
+        while 'benifits' not in product or len(product['benifits']) <= 0:
+            product = random.choice(products)
+        benefits.append(random.choice(product['benifits']))
+
+    return benefits
+
+
+def question_verification(request, question_id):
+    if request.method == 'POST':
+        answer = request.POST.get('answer')
+        right_product = request.session.get(question_id)['right_product']
+        verification_results = {}
+        if answer and answer == right_product['benifit']:
+            verification_results['is_correct'] = True
+            request.session.get(question_id)["is_correct"] = True
+        else:
+            verification_results['is_correct'] = False
+            request.session.get(question_id)["is_correct"] = False
+
+        verification_results["text"] = "The best benefit of the product " \
+                                       '"{0}" is {1}.'.format(right_product['name'].encode('utf-8').strip(),
+                                                              right_product['benifit'].encode('utf-8').strip())
+        return HttpResponse(
+            json.dumps(verification_results),
+            content_type="application/json; charset=UTF-8"
+        )
+
+
+def categories(request):
+    """
+    list all categories to let user pick up
+    :param request: request objects
+    :return:
+    """
+
+    return render(request, 'dtss/categories.html', {"categories": category_list})

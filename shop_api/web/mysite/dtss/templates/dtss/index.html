@@ -2,17 +2,15 @@
 
 {% block content %}
 <h1>WELCOME TO DTSS</h1>
-<form action="{% url 'dtss:login' %}">
-    <div>
-        <span>Click "Start Game" button to play!</span>
-        <input type="submit" name="login" value="Start Game" /> 
-    </div>
-</form>
+<div>
+    <span>Click "Start Game" button to play!</span>
+    <a href="{% url 'dtss:categories' %}"> Start Game></a>
+</div>
 <p> Top gamer list</p>
     <ul>
     {% for user in users %}
         <li>
-            {{ user.email}} ******* score: {{ user.score }} ******* duration: {{ user.duration|add:" seconds" }}
+            {{ user.email}} ******* score: {{ user.score }} ******* duration: {{ user.duration }} seconds
         </li>
     {% endfor %}
     </ul>
