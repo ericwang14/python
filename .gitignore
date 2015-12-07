@@ -1,6 +1,10 @@
 *.pyc
+*.py~
 *.swp
+*db.sqlite3
 ENV/*
+.idea
+*/.idea/*
 first_python/*
 basic learning/*
 
