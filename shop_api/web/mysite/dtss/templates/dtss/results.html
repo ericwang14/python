@@ -1,5 +1,15 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<p> {{email}} score is {{ user.score }}, time {{ user.duration }}
+    <p> score is {{ score }}, time {{ duration }}
+    <form action="{% url 'dtss:login' %}" method="post">
+        {% csrf_token %}
+        {% if error %}
+            <p class="error"> {{ error }}</p>
+        {% endif %}
+        <input type="text" name="email" id="email" />
+        <input type="hidden" name="duration" value="{{ duration }}" />
+        <input type="hidden" name="score" value="{{ score }}" />
+        <input type="submit" name="submit" value="Send"/>
+    </form>
 {% endblock content %}

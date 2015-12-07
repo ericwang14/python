@@ -1,0 +1,19 @@
+{% block content %}
+
+<h1>WELCOME TO DTSS</h1>
+
+    <form action="{% url 'dtss:question' 1 %}" method="post">
+        {% csrf_token %}
+        <ul>
+        {% for category in categories %}
+            <li>
+                <input type="checkbox" name="categories" value="{{ category }}">{{ category }}</input>
+            </li>
+        {% endfor %}
+
+        <br/>
+        <br/>
+        <input type="submit" name="submit" value="Pick up categories & Let's start" />
+    </ul>
+    </form>
+{% endblock %}
