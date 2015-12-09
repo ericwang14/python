@@ -121,12 +121,14 @@ def main_question(request, question_id):
 
     products = request.session.get('products')
     product = random.choice(products)
-    while 'benifits' not in product or len(product['benifits']) <= 0:
+
+    while 'benifits' not in product or len(product['benifits']) <= 0 \
+            or (is_product_used(request, product)):
         product = random.choice(products)
 
     product['benifit'] = random.choice(product['benifits'])
 
-    benifits = [product['benifit']] + build_random_benefits(products)
+    benifits = [product['benifit']] + build_random_benefits(products, product)
 
     context = {
         'counter': question_id,
@@ -139,6 +141,15 @@ def main_question(request, question_id):
     _update_question_answer(request, int(question_id))
 
     return render(request, 'dtss/qa.html', context)
+
+
+def is_product_used(request, product):
+    for key, value in request.session.items():
+        if type(value) != int and'right_product' in value \
+                and value['right_product']['name'] == product['name']:
+            return True
+
+    return False
 
 
 def _update_question_answer(request, question_id):
@@ -186,13 +197,20 @@ def _check_score(request):
     return score
 
 
-def build_random_benefits(products):
+def build_random_benefits(products, right_product):
     benefits = []
     for i in range(1, 4):
         product = random.choice(products)
-        while 'benifits' not in product or len(product['benifits']) <= 0:
+        while 'benifits' not in product \
+                or len(product['benifits']) <= 0 \
+                or right_product['name'] == product['name']:
             product = random.choice(products)
-        benefits.append(random.choice(product['benifits']))
+
+        benefit = random.choice(product['benifits'])
+        while benefit in benefits:
+            benefit = random.choice(product['benifits'])
+
+        benefits.append(benefit)
 
     return benefits
 

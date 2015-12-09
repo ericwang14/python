@@ -27,7 +27,7 @@ def get_response(url):
         print e
 
 
-def get_search_items(categories):
+def get_search_items(categories=search_key):
     """
     get search results and parse it return search item array
     :param categories category list
@@ -43,7 +43,10 @@ def get_search_items(categories):
         raise Exception('nothing search back')
 
     for r in rep:
-        search_items += r['searchItems']
+        for item in r['searchItems']:
+            if ('isMAStore' in item and item['isMAStore']) \
+                    or ('modelQuickViewDetails' in item and item['modelQuickViewDetails']['isMAStore']):
+                search_items.append(item)
     return search_items
 
 
@@ -56,7 +59,7 @@ def get_product_urls(search_items):
         if 'productDetail' in item:
             urls.append(item['productDetail']['href'])
 
-    return urls
+    return set(urls)
 
 
 def get_products(categories):
@@ -81,6 +84,15 @@ def build_product(original_product):
     }
 
     if len(extended_descriptions) > 0:
+        if extended_descriptions[0]['caption'].upper() == 'Benefits'.upper() \
+                and 'items' in extended_descriptions[0] and len(extended_descriptions[0]['items']):
+            product['benifits'] = extended_descriptions[0]['items'][0]['description']
+            return product
+
+        if 'siblings' not in extended_descriptions[0]:
+            product['benifits'] = []
+            return product
+
         siblings = extended_descriptions[0]['siblings']
         for sibling in siblings:
             if sibling['caption'].upper() == 'Benefits'.upper() and len(sibling['items']) > 0:

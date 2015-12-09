@@ -18,10 +18,11 @@ def parse(categories):
             if "benifits" in product:
                 selector = etree.HTML(product['benifits'])
                 product['benifits'] = selector.xpath('//ul/li/text()')
+                if 'benifits' not in product or len(product['benifits']) <= 0:
+                    product['benifits'] = selector.xpath('//ul/li/span/text()')
         except KeyError as e:
             print e
     return products
-
 
 
 if __name__ == '__main__':
