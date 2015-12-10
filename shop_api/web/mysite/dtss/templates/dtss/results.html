@@ -2,14 +2,35 @@
 
 {% block content %}
     <p> score is {{ score }}, time {{ duration }}
-    <form action="{% url 'dtss:login' %}" method="post">
-        {% csrf_token %}
-        {% if error %}
-            <p class="error"> {{ error }}</p>
-        {% endif %}
-        <input type="text" name="email" id="email" />
-        <input type="hidden" name="duration" value="{{ duration }}" />
-        <input type="hidden" name="score" value="{{ score }}" />
-        <input type="submit" name="submit" value="Send"/>
+        <form action="{% url 'dtss:login' %}" method="post">
+            {% csrf_token %}
+            {% if error %}
+                <p class="error"> {{ error }}</p>
+            {% endif %}
+
+    <input type="hidden" name="duration" value="{{ duration }}"/>
+    <input type="hidden" name="score" value="{{ score }}"/>
+    <div class="row">
+        <label>First Name:</label>
+        <input type="text" name="first_name" required/>
+    </div>
+    <div class="row">
+        <label>Last Name:</label>
+        <input type="text" name="last_name" required/>
+    </div>
+    <div class="row">
+        <label>Email:</label>
+        <input type="email" name="email" id="email" required/>
+    </div>
+    <input type="submit" name="submit" value="Send"/>
     </form>
+    <p> Top gamer list</p>
+    <ul>
+        {% for user in users %}
+            <li>
+                {{ user.email|default:'Your' }} ******* score: {{ user.score }} ******* duration: {{ user.duration }}
+                seconds
+            </li>
+        {% endfor %}
+    </ul>
 {% endblock content %}

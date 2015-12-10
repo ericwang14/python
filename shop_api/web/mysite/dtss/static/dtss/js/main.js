@@ -6,7 +6,7 @@ $(document).ready(
         });
 
         function verify_question(form) {
-            var answer = $('input[name=answer]:checked').val()
+            var answer = $('input[name=answer]:checked').val();
             $.ajax({
                 url: $(form).prop('action'),
                 type: 'POST',
@@ -26,6 +26,12 @@ $(document).ready(
                         $('.result_p').html('Sorry :(');
                         $result_p.addClass('error').removeClass('green');
                     }
+                    $('input[name=answer]').each(function () {
+                        if (data.right_answer == $(this).val()) {
+                            $(this).parent('li').addClass('highlight');
+                        }
+                    });
+
                 },
                 error: function () {
                     $('.next_question').hide();
@@ -33,7 +39,6 @@ $(document).ready(
                 }
             })
         }
-
 
         // This function gets cookie with a given name
         function getCookie(name) {
@@ -86,6 +91,16 @@ $(document).ready(
                     xhr.setRequestHeader("X-CSRFToken", csrftoken);
                 }
             }
+        });
+
+        $('#categories_form').on('submit', function (e) {
+            if ($('input[name=categories]:checked').length < 3) {
+                alert('Please select at least 3 categories!');
+                e.preventDefault();
+                return false;
+            }
+            $(".loader").show();
+            return true;
         });
     }
 );

@@ -1,19 +1,21 @@
+{% extends "base.html" %}
 {% block content %}
 
-<h1>WELCOME TO DTSS</h1>
-
-    <form action="{% url 'dtss:question' 1 %}" method="post">
+    <form action="{% url 'dtss:question' 1 %}" method="post" id="categories_form">
         {% csrf_token %}
+        <P>Pick 3 or more categories to play</P>
         <ul>
-        {% for category in categories %}
-            <li>
-                <input type="checkbox" name="categories" value="{{ category }}">{{ category }}</input>
-            </li>
-        {% endfor %}
+            {% for category in categories %}
+                <li>
+                    <input type="checkbox" name="categories" value="{{ category }}">{{ category }}</input>
+                </li>
+            {% endfor %}
 
-        <br/>
-        <br/>
-        <input type="submit" name="submit" value="Pick up categories & Let's start" />
-    </ul>
+            <br/>
+            <br/>
+            <input type="submit" name="submit" value="Quiz me"/>
+        </ul>
+
+        <div id="target"></div>
     </form>
 {% endblock %}

@@ -3,15 +3,18 @@
     <head>
         {% block style %}
             <link rel="stylesheet" href="{% static 'dtss/style.css' %}" />
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-            <script src="{% static 'dtss/js/main.js' %}"></script>
         {% endblock style %}
         <title>{% block title %}DTSS {% endblock title %}</title>
     </head>
 
     <body>
+        <div class="loader" style="display:none"></div>
+        <h1>Welcome to Benny</h1>
         <div id="content">
             {% block content %}{% endblock content %}
         </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="{% static 'dtss/js/main.js' %}"></script>
+    <script src="{% static 'dtss/js/loading-overlay.min.js' %}"></script>
     </body>
 </html>

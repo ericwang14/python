@@ -1,29 +1,31 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<p>WELCOME TO DTSS</p>
 
-<form action="{% url 'dtss:question_verification' counter %}" method="POST" id="question_form">
-    {% csrf_token %}
-    <P>{{ counter }}.  Please pick the one best benefit of the product "{{ product.name|safe }}"?</p>
-    <ul>
-        {% for benifit in benifits %}
-        <li>
-            <input type='radio' name='answer' value="{{ benifit }}"> {{ benifit }} </input>
-        </li>
-        {% endfor %}
-    </ul>
-    <input type="submit" name="submit" id="submit" value="SUBMIT>" />
+    <form action="{% url 'dtss:question_verification' counter %}" method="POST" id="question_form">
+        {% csrf_token %}
+        <P>{{ counter }}. Please pick the one best benefit of the product "<strong>{{ product.name|safe }}</strong>"?
+        </p>
+        <ul>
+            {% for benifit in benifits %}
+                <li>
+                    <input type='radio' name='answer' value="{{ benifit }}"> {{ benifit }} </input>
+                </li>
+            {% endfor %}
+        </ul>
+        <input type="submit" name="submit" id="submit" value="SUBMIT>"/>
 
-</form>
+    </form>
 
     <div class="result_area">
         <form action="{% url 'dtss:question' next %}" method="POST">
-        {% csrf_token %}
-            <input type="hidden" name="answer" />
+            {% csrf_token %}
+            <input type="hidden" name="answer"/>
+
             <p class="result_p"></p>
+
             <p class="answer_result"></p>
-            <input type="submit" name="next_question" value="NEXT QUESTION>" />
+            <input type="submit" name="next_question" value="NEXT QUESTION>"/>
         </form>
     </div>
 {% endblock content %}

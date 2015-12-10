@@ -29,15 +29,15 @@ Index page --> start game --> pick up categories --> answer question 1 ~ 10 --> 
 
 sender = "yeak2002@gmail.com"
 pwd = "wanggang1224"
-category_list = ['isotonix', 'motives', 'snap', 'tls', 'prime',
-                 'fixx', 'DNA Miracles', 'Cellular Laboratories']
+category_list = ['Isotonix', 'Motives', 'Snap', 'Tls', 'Prime',
+                 'Fixx', 'DNA Miracles', 'Cellular Laboratories']
 
 
 def index(request):
     request.session.clear()
     request.session.clear_expired()
 
-    users = User.objects.filter(email__isnull=False).order_by('-score', '-duration')
+    users = User.objects.filter(email__isnull=False).order_by('-score', 'duration')[:10]
     return render(request, 'dtss/index.html', {'users': users, })
 
 
@@ -49,10 +49,14 @@ def login(request):
     """
     try:
         email = request.POST['email']
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
         if not email:
             return render(request, 'dtss/results.html', {'error': 'Please enter email first!'})
         user = User.objects.get(pk=request.session.get("user_id"))
         user.email = email
+        user.first_name = first_name
+        user.last_name = last_name
         user.save()
         send_mail(user)
     except KeyError:
@@ -78,6 +82,8 @@ def send_mail(user):
         "From: %s" % sender,
         "To: %s" % user.email,
         "Subject: Your DTSS game score!",
+        "",
+        "Hey {0},".format(user.first_name),
         "",
         text,
         ), "\r\n")
@@ -185,7 +191,12 @@ def results(request):
     user.duration = duration
     user.save()
 
-    return render(request, 'dtss/results.html', {'score': score, 'duration': duration})
+    users = User.objects.filter(email__isnull=False).order_by('-score', 'duration')[:9]
+    user_list = [s_user for s_user in users]
+    user_list.append(user)
+    user_list.sort(key=lambda item: (item.score, -item.duration), reverse=True)
+
+    return render(request, 'dtss/results.html', {'score': score, 'duration': duration, 'users': user_list})
 
 
 def _check_score(request):
@@ -230,6 +241,7 @@ def question_verification(request, question_id):
         verification_results["text"] = "The best benefit of the product " \
                                        '"{0}" is {1}.'.format(right_product['name'].encode('utf-8').strip(),
                                                               right_product['benifit'].encode('utf-8').strip())
+        verification_results["right_answer"] = right_product['benifit'].encode('utf-8').strip()
         return HttpResponse(
             json.dumps(verification_results),
             content_type="application/json; charset=UTF-8"

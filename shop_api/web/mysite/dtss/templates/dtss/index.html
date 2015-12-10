@@ -1,17 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1>WELCOME TO DTSS</h1>
-<div>
-    <span>Click "Start Game" button to play!</span>
-    <a href="{% url 'dtss:categories' %}"> Start Game></a>
-</div>
-<p> Top gamer list</p>
+    <p>This quick and fun 10 question game quizzes you on Market America product benefits (aka Benny).</p>
+
+    <p>With this service, you can run a contest (highest score with lowest time) to solicit new customers and/or allow
+        existing customers
+        to have fun while they learn product benefits or to just let people play to pass the time and let them learn
+        product benefits to help them sell .
+        Service plug in can be run on mobile devices and full websites.
+    </p>
+    <p>
+        Each product will be shown with 4 benefits. You pick the correct benefit and score a point.</p>
+    <p>
+        Most points with fastest time wins!
+    </p>
+    <div>
+        <a href="{% url 'dtss:categories' %}"> Start Game></a>
+    </div>
+    <p> Top gamer list</p>
     <ul>
-    {% for user in users %}
-        <li>
-            {{ user.email}} ******* score: {{ user.score }} ******* duration: {{ user.duration }} seconds
-        </li>
-    {% endfor %}
+        {% for user in users %}
+            <li>
+                {{ user.email }} ******* score: {{ user.score }} ******* duration: {{ user.duration }} seconds
+            </li>
+        {% endfor %}
     </ul>
 {% endblock content %}
