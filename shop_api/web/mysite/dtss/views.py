@@ -11,7 +11,7 @@ import smtplib
 import string
 import random
 import json
-import parse_product
+import product_search
 
 """
 DTSS main view controller
@@ -128,19 +128,23 @@ def main_question(request, question_id):
     products = request.session.get('products')
     product = random.choice(products)
 
-    while 'benifits' not in product or len(product['benifits']) <= 0 \
+    while 'benefits' not in product or len(product['benefits']) <= 0 \
             or (is_product_used(request, product)):
         product = random.choice(products)
 
-    product['benifit'] = random.choice(product['benifits'])
+    benefit = random.choice(product['benefits'])
+    while len(benefit.split(" ")) < 4:
+        benefit = random.choice(product['benefits'])
 
-    benifits = [product['benifit']] + build_random_benefits(products, product)
+    product['benefit'] = benefit.strip()
+
+    benefits = [product['benefit']] + build_random_benefits(products, product)
 
     context = {
         'counter': question_id,
         'next': int(question_id) + 1,
         'product': product,
-        'benifits': random.sample(benifits, 4)
+        'benefits': random.sample(benefits, 4)
     }
     request.session[question_id] = {'right_product': product, }
 
@@ -167,7 +171,7 @@ def _update_question_answer(request, question_id):
     question_id -= 1
     answer = request.POST.get('answer', None)
     right_product = request.session.get(str(question_id))['right_product']
-    if answer and answer == right_product['benifit']:
+    if answer and answer == right_product['benefit']:
         request.session.get(str(question_id))['is_correct'] = True
 
 
@@ -178,7 +182,7 @@ def _load_product(request, selected_categories):
     """
     products = request.session.get('products')
     if not products:
-        products = parse_product.parse(selected_categories)
+        products = product_search.get_products(selected_categories)
         request.session['products'] = products
     return products
 
@@ -188,13 +192,14 @@ def results(request):
     user = User.objects.get(pk=request.session.get("user_id"))
     duration = (user.end_date - user.start_date).seconds
     user.score = score
-    user.duration = duration
+    mins, seconds = divmod(duration, 60)
+    user.duration = "%d:%d" % (mins, seconds)
     user.save()
 
     users = User.objects.filter(email__isnull=False).order_by('-score', 'duration')[:9]
     user_list = [s_user for s_user in users]
     user_list.append(user)
-    user_list.sort(key=lambda item: (item.score, -item.duration), reverse=True)
+    user_list.sort(key=lambda item: (item.score, item.duration), reverse=True)
 
     return render(request, 'dtss/results.html', {'score': score, 'duration': duration, 'users': user_list})
 
@@ -212,16 +217,16 @@ def build_random_benefits(products, right_product):
     benefits = []
     for i in range(1, 4):
         product = random.choice(products)
-        while 'benifits' not in product \
-                or len(product['benifits']) <= 0 \
+        while 'benefits' not in product \
+                or len(product['benefits']) <= 0 \
                 or right_product['name'] == product['name']:
             product = random.choice(products)
 
-        benefit = random.choice(product['benifits'])
-        while benefit in benefits:
-            benefit = random.choice(product['benifits'])
+        benefit = random.choice(product['benefits'])
+        while benefit in benefits or len(benefit.split(" ")) < 4:
+            benefit = random.choice(product['benefits'])
 
-        benefits.append(benefit)
+        benefits.append(benefit.strip())
 
     return benefits
 
@@ -231,7 +236,7 @@ def question_verification(request, question_id):
         answer = request.POST.get('answer')
         right_product = request.session.get(question_id)['right_product']
         verification_results = {}
-        if answer and answer == right_product['benifit']:
+        if answer and answer == right_product['benefit']:
             verification_results['is_correct'] = True
             request.session.get(question_id)["is_correct"] = True
         else:
@@ -240,8 +245,8 @@ def question_verification(request, question_id):
 
         verification_results["text"] = "The best benefit of the product " \
                                        '"{0}" is {1}.'.format(right_product['name'].encode('utf-8').strip(),
-                                                              right_product['benifit'].encode('utf-8').strip())
-        verification_results["right_answer"] = right_product['benifit'].encode('utf-8').strip()
+                                                              right_product['benefit'].encode('utf-8').strip())
+        verification_results["right_answer"] = right_product['benefit'].encode('utf-8').strip()
         return HttpResponse(
             json.dumps(verification_results),
             content_type="application/json; charset=UTF-8"

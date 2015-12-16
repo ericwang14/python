@@ -1,5 +1,8 @@
 #! /usr/bin/python
 # --*-- encoding=utf-8 --*--
+
+from lxml import etree
+
 import requests
 import random
 
@@ -66,14 +69,14 @@ def get_products(categories):
     """
     get products
     the product object structure will be 
-    {name:xxx, benifit: xxx}
+    {name:xxx, benefit: xxx}
     :param categories category list
     """
     products = []
     product_urls = get_product_urls(get_search_items(categories))
-    for url in random.sample(product_urls, 20):
+    for url in random.sample(product_urls, 30):
         products.append(build_product(get_response(api_domain + url)))
-    return products
+    return parse(products)
 
 
 def build_product(original_product):
@@ -86,20 +89,33 @@ def build_product(original_product):
     if len(extended_descriptions) > 0:
         if extended_descriptions[0]['caption'].upper() == 'Benefits'.upper() \
                 and 'items' in extended_descriptions[0] and len(extended_descriptions[0]['items']):
-            product['benifits'] = extended_descriptions[0]['items'][0]['description']
+            product['benefits'] = extended_descriptions[0]['items'][0]['description']
             return product
 
         if 'siblings' not in extended_descriptions[0]:
-            product['benifits'] = []
+            product['benefits'] = []
             return product
 
         siblings = extended_descriptions[0]['siblings']
         for sibling in siblings:
             if sibling['caption'].upper() == 'Benefits'.upper() and len(sibling['items']) > 0:
-                product['benifits'] = sibling['items'][0]['description']
+                product['benefits'] = sibling['items'][0]['description']
 
     return product
 
 
+def parse(products):
+    for product in products:
+        try:
+            if "benefits" in product:
+                selector = etree.HTML(product['benefits'])
+                product['benefits'] = selector.xpath('//ul/li/text()')
+                if 'benefits' not in product or len(product['benefits']) <= 0:
+                    product['benefits'] = selector.xpath('//ul/li/span/text()')
+        except KeyError as e:
+            print e
+    return products
+
+
 if __name__ == "__main__":
-    print get_products()
+    print get_products(search_key)

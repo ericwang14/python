@@ -7,9 +7,9 @@
         <P>{{ counter }}. Please pick the one best benefit of the product "<strong>{{ product.name|safe }}</strong>"?
         </p>
         <ul>
-            {% for benifit in benifits %}
+            {% for benefit in benefits %}
                 <li>
-                    <input type='radio' name='answer' value="{{ benifit }}"> {{ benifit }} </input>
+                    <input type='radio' name='answer' value="{{ benefit.strip }}"> {{ benefit.strip }} </input>
                 </li>
             {% endfor %}
         </ul>

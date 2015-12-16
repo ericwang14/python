@@ -29,7 +29,6 @@
         {% for user in users %}
             <li>
                 {{ user.email|default:'Your' }} ******* score: {{ user.score }} ******* duration: {{ user.duration }}
-                seconds
             </li>
         {% endfor %}
     </ul>
