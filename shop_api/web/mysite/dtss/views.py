@@ -75,7 +75,7 @@ def send_mail(user):
     smtp_server.starttls()
     smtp_server.login(sender, pwd)
 
-    text = """Your score is {0}, duration seconds {1}, you can go to http://www.shop.com to finish your registration.""".format(
+    text = """Your score is {0}, duration {1}, you can go to http://www.shop.com to finish your registration.""".format(
         str(user.score), str(user.duration))
 
     message = string.join((
