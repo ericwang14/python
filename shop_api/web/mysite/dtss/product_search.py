@@ -111,7 +111,10 @@ def parse(products):
                 selector = etree.HTML(product['benefits'])
                 product['benefits'] = selector.xpath('//ul/li/text()')
                 if 'benefits' not in product or len(product['benefits']) <= 0:
-                    product['benefits'] = selector.xpath('//ul/li/span/text()')
+                    benefits_elms = selector.xpath('//div[@id="benefits"]/*/li')
+                    if isinstance(benefits_elms, list):
+                        product['benefits'] = ' '.join(
+                            [text for elm in benefits_elms for text in elm.itertext() if elm])
         except KeyError as e:
             print e
     return products

@@ -138,7 +138,8 @@ def main_question(request, question_id):
 
     product['benefit'] = benefit.strip()
 
-    benefits = [product['benefit']] + build_random_benefits(products, product)
+    benefits = build_random_benefits(products, product)
+    benefits.append(product['benefit'])
 
     context = {
         'counter': question_id,
@@ -214,8 +215,8 @@ def _check_score(request):
 
 
 def build_random_benefits(products, right_product):
-    benefits = []
-    for i in range(1, 4):
+    benefits = set()
+    for i in range(1, 10):
         product = random.choice(products)
         while 'benefits' not in product \
                 or len(product['benefits']) <= 0 \
@@ -226,9 +227,9 @@ def build_random_benefits(products, right_product):
         while benefit in benefits or len(benefit.split(" ")) < 4:
             benefit = random.choice(product['benefits'])
 
-        benefits.append(benefit.strip())
+        benefits.add(benefit.strip())
 
-    return benefits
+    return list(benefits)[:4]
 
 
 def question_verification(request, question_id):
