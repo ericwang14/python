@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <form action="{% url 'famos:clear' %}" method="POST">
+    {% csrf_token %}
+        <div>
+            <label>Please select Environment: </label>
+            <ul>
+                {% for env in envs %}
+                    <li>
+                        <input type="radio" name="env" value="{{ env.name }}">{{ env.name }}</input>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div>
+            <label>Please select sites: </label>
+            <ul>
+                {% for site in sites %}
+                    <li>
+                        <input type="checkbox" name="sites" value="{{ site.name }}" >{{ site.name }}</input>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div id="key_fields">
+            <label style="width:100px; display:inline-block;">String Keys:</label>
+            <input type="text" name="keys" style="width: 40%"/> <a href="javascript:void(0)" id="add_more">Add more string key</a>
+        </div>
+    <input type="submit" name="submit"/>
+    </form>
+{% endblock %}

@@ -102,6 +102,12 @@ $(document).ready(
             $(".loader").show();
             return true;
         });
+
+
+        $('#add_more').on('click', function() {
+            var text_html = '<div><input type="text" name="keys" style="width: 40%; margin-left: 104px;"/></div>';
+            $('#key_fields').append(text_html);
+        })
     }
 );
 

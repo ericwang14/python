@@ -18,5 +18,6 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^dtss/', include('dtss.urls', namespace='dtss')),
+    url(r'^famos/', include('famos_cache.urls', namespace='famos')),
     url(r'^admin/', include(admin.site.urls)),
 ]

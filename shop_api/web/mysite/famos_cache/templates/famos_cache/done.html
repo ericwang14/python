@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    Done!!! Below URLs getting clear out
+
+    <ul>
+        {% for url in clear_urls %}
+            <li>{{ url }}</li>
+        {% endfor %}
+    </ul>
+{% endblock %}
