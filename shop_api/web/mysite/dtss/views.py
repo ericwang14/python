@@ -229,7 +229,7 @@ def build_random_benefits(products, right_product):
 
         benefits.add(benefit.strip())
 
-    return list(benefits)[:4]
+    return list(benefits)[:3]
 
 
 def question_verification(request, question_id):
