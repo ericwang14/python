@@ -215,6 +215,12 @@ def _check_score(request):
 
 
 def build_random_benefits(products, right_product):
+    """
+    build random benefit list from given product list
+    :param products:        - product list
+    :param right_product:   - the product which choose by question
+    :return: random benefit answer list the size is 3
+    """
     benefits = set()
     for i in range(1, 10):
         product = random.choice(products)
@@ -224,7 +230,7 @@ def build_random_benefits(products, right_product):
             product = random.choice(products)
 
         benefit = random.choice(product['benefits'])
-        while benefit in benefits or len(benefit.split(" ")) < 4:
+        while benefit in benefits or benefit in right_product['benefits'] or len(benefit.split(" ")) < 4:
             benefit = random.choice(product['benefits'])
 
         benefits.add(benefit.strip())
@@ -233,6 +239,12 @@ def build_random_benefits(products, right_product):
 
 
 def question_verification(request, question_id):
+    """
+    verify selected question
+    :param request:         - request object
+    :param question_id:     - question id
+    :return:    true mean right
+    """
     if request.method == 'POST':
         answer = request.POST.get('answer')
         right_product = request.session.get(question_id)['right_product']

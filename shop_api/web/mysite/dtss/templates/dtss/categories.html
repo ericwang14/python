@@ -3,7 +3,7 @@
 
     <form action="{% url 'dtss:question' 1 %}" method="post" id="categories_form">
         {% csrf_token %}
-        <P>Pick 3 or more categories to play</P>
+        <P>Pick 3 or more brands for your questions</P>
         <ul>
             {% for category in categories %}
                 <li>
