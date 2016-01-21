@@ -25,8 +25,9 @@ def get_response(url):
     try:
         r = requests.request(method='GET', url=url, headers={'apikey': api_key})
         if r.status_code != 200:
-            print url + ' ' + str(r.status_code) + r.reason
-            return
+            print url + ' ' + str(r.status_code) + ' ' + r.reason
+            print 'try one more time'
+            return get_response(url)
 
         return r.json()
     except Exception as e:
