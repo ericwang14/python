@@ -19,12 +19,15 @@ search_url = 'https://api.shop.com/sites/v1/search/Term/{0}'
 def get_response(url):
     """
     get response for given url
+    :param url   - request url
     """
 
     try:
         r = requests.request(method='GET', url=url, headers={'apikey': api_key})
         if r.status_code != 200:
-            return 'can not connect api site'
+            print url + ' ' + str(r.status_code) + r.reason
+            return
+
         return r.json()
     except Exception as e:
         print e
@@ -46,10 +49,13 @@ def get_search_items(categories=search_key):
         raise Exception('nothing search back')
 
     for r in rep:
-        for item in r['searchItems']:
-            if ('isMAStore' in item and item['isMAStore']) \
-                    or ('modelQuickViewDetails' in item and item['modelQuickViewDetails']['isMAStore']):
-                search_items.append(item)
+        if not r:
+            pass
+        else:
+            for item in r['searchItems']:
+                if ('isMAStore' in item and item['isMAStore']) \
+                        or ('modelQuickViewDetails' in item and item['modelQuickViewDetails']['isMAStore']):
+                    search_items.append(item)
     return search_items
 
 
@@ -74,12 +80,21 @@ def get_products(categories):
     """
     products = []
     product_urls = get_product_urls(get_search_items(categories))
-    for url in random.sample(product_urls, 30):
-        products.append(build_product(get_response(api_domain + url)))
+    num_product = 30
+    if len(product_urls) < 30:
+        num_product = len(product_urls)
+
+    for url in random.sample(product_urls, num_product):
+        product = build_product(get_response(api_domain + url))
+        if product:
+            products.append(product)
     return parse(products)
 
 
 def build_product(original_product):
+    if not original_product:
+        return
+
     extended_descriptions = original_product['extendedDescriptions']
     product = {
         'name': original_product['caption'],
@@ -107,7 +122,7 @@ def build_product(original_product):
 def parse(products):
     for product in products:
         try:
-            if "benefits" in product:
+            if "benefits" in product and len(product['benefits']) > 0:
                 selector = etree.HTML(product['benefits'])
                 product['benefits'] = selector.xpath('//ul/li/text()')
                 if 'benefits' not in product or len(product['benefits']) <= 0:
