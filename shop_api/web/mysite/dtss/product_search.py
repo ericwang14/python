@@ -140,6 +140,8 @@ def parse(products):
                 if 'benefits' not in product or len(product['benefits']) <= 0:
                     product['benefits'] = selector.xpath('//ul/li/*/text()')
                 if 'benefits' not in product or len(product['benefits']) <= 0:
+                    product['benefits'] = selector.xpath('//ul/li/*/*/text()')
+                if 'benefits' not in product or len(product['benefits']) <= 0:
                     product['benefits'] = selector.xpath('//ul/li/div/text()')
                 if 'benefits' not in product or len(product['benefits']) <= 0:
                     product['benefits'] = selector.xpath('//p/text()')

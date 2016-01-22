@@ -124,8 +124,13 @@ def main_question(request, question_id):
     if int(question_id) > question_count:
         _update_question_answer(request, int(question_id))
 
+        score = _check_score(request)
         user = User.objects.get(pk=request.session.get("user_id"))
         user.end_date = timezone.now()
+        duration = (user.end_date - user.start_date).seconds
+        user.score = score
+        mins, seconds = divmod(duration, 60)
+        user.duration = "%d:%d" % (mins, seconds)
         user.save()
 
         return HttpResponseRedirect(reverse('dtss:results'))
@@ -201,23 +206,15 @@ def _load_product(request, selected_categories):
 def results(request):
     if request.session.is_empty():
         return HttpResponseRedirect(reverse('dtss:index'))
-    try:
-        score = _check_score(request)
-        user = User.objects.get(pk=request.session.get("user_id"))
-        duration = (user.end_date - user.start_date).seconds
-        user.score = score
-        mins, seconds = divmod(duration, 60)
-        user.duration = "%d:%d" % (mins, seconds)
-        user.save()
 
-        users = User.objects.filter(email__isnull=False).order_by('-score', 'duration')[:9]
-        user_list = [s_user for s_user in users]
-        user_list.append(user)
-        user_list.sort(key=lambda item: (item.score, item.duration), reverse=True)
+    user = User.objects.get(pk=request.session.get("user_id"))
 
-        return render(request, 'dtss/results.html', {'score': score, 'duration': duration, 'users': user_list})
-    except Exception:
-        return HttpResponseRedirect(reverse('dtss:index'))
+    users = User.objects.filter(email__isnull=False).order_by('-score',  'duration')[:9]
+    user_list = [s_user for s_user in users]
+    user_list.append(user)
+    user_list.sort(key=lambda item: (item.score, item.duration), reverse=True)
+
+    return render(request, 'dtss/results.html', {'score': user.score, 'duration': user.duration, 'users': user_list})
 
 
 def _check_score(request):
