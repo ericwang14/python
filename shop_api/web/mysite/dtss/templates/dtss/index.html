@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load staticfiles %}
 
 {% block content %}
     <p>This quick and fun 10 question game quizzes you on Market America product benefits (aka Benny).</p>
@@ -28,4 +29,7 @@
             </li>
         {% endfor %}
     </ul>
+    <audio controls autoplay>
+        <source src="{% static 'dtss/jets_1.mp3' %}" type="audio/mpeg" />
+    </audio>
 {% endblock content %}

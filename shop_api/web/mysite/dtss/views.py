@@ -328,5 +328,6 @@ def categories(request):
     :param request: request objects
     :return:
     """
-
+    request.session.clear()
+    request.session.clear_expired()
     return render(request, 'dtss/categories.html', {"categories": category_list})
