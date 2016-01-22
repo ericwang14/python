@@ -14,4 +14,5 @@ class User(models.Model):
     duration = models.CharField(max_length=200, default=0)
     start_date = models.DateTimeField(null=True)
     end_date = models.DateTimeField(null=True)
+    ip_address = models.CharField(max_length=500, default=0)
     creation_date = models.DateTimeField()

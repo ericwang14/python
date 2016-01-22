@@ -115,6 +115,7 @@ def main_question(request, question_id):
 
     if int(question_id) <= 1:
         user = User(creation_date=timezone.now(), start_date=timezone.now())
+        user.ip_address = get_client_ip(request)
         user.save()
         request.session['user_id'] = user.id
 
@@ -136,16 +137,9 @@ def main_question(request, question_id):
         return HttpResponseRedirect(reverse('dtss:results'))
 
     products = request.session.get('products')
-    product = random.choice(products)
+    product = pick_up_product(request, products)
 
-    while 'benefits' not in product or len(product['benefits']) <= 0:
-        product = random.choice(products)
-
-    # remove product from product list it is already used
-    try:
-        products.remove(product)
-    except ValueError:
-        pass
+    store_picked_product(request, product)
 
     benefit = random.choice(product['benefits'])
     while len(benefit.split(" ")) < 4:
@@ -154,19 +148,66 @@ def main_question(request, question_id):
     product['benefit'] = benefit.strip()
 
     benefits = build_random_benefits(products, product)
+    print 'question product: ' + product['name']
+    print "answer list: " + json.dumps(benefits)
+
     benefits.append(product['benefit'])
 
     context = {
         'counter': question_id,
         'next': int(question_id) + 1,
         'product': product,
-        'benefits': random.sample(benefits, 4)
+        'benefits': random.sample(benefits, 4),
+        'context_debug': 'main' in request.GET and request.GET['main'] == 'debug'
     }
     request.session[question_id] = {'right_product': product, }
 
     _update_question_answer(request, int(question_id))
 
     return render(request, 'dtss/qa.html', context)
+
+
+def get_client_ip(request):
+    """
+    get client ip address
+    :param request:     - request object
+    :return: client ip
+    """
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+
+def pick_up_product(request, products):
+    """
+    pick up question product from product list
+    :param request:     - request object
+    :param products:    - product list
+    :return: question product
+    """
+    product = random.choice(products)
+    picked_products = [] if 'picked_products' not in request.session else request.session['picked_products']
+    while 'benefits' not in product or len(product['benefits']) <= 0 or product in picked_products:
+        product = random.choice(products)
+
+    return product
+
+
+def store_picked_product(request, product):
+    """
+    store picked product into session or clear picked products if the stored size greater than 5
+    :param request:     - request object
+    :param product:     - picked product
+    :return:
+    """
+
+    if "picked_products" not in request.session or len(request.session['picked_products']) > 5:
+        request.session['picked_products'] = []
+
+    request.session['picked_products'].append(product)
 
 
 def is_product_used(request, product):
@@ -234,7 +275,7 @@ def build_random_benefits(products, right_product):
     :return: random benefit answer list the size is 3
     """
     benefits = set()
-    for i in range(1, 10):
+    for i in range(1, 4):
         product = random.choice(products)
         while 'benefits' not in product \
                 or len(product['benefits']) <= 0 \
@@ -246,6 +287,9 @@ def build_random_benefits(products, right_product):
             benefit = random.choice(product['benefits'])
 
         benefits.add(benefit.strip())
+
+    while len(benefits) < 3:
+        return build_random_benefits(products, right_product)
 
     return list(benefits)[:3]
 

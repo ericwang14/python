@@ -24,7 +24,7 @@
     <ul>
         {% for user in users %}
             <li>
-                {{ user.email }} ******* score: {{ user.score }} ******* duration: {{ user.duration }}
+                {{ user.first_name }}{{ user.last_name }} ******* score: {{ user.score }} ******* duration: {{ user.duration }}
             </li>
         {% endfor %}
     </ul>

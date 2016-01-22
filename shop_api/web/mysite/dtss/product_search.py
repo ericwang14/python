@@ -5,6 +5,7 @@ from lxml import etree
 
 import requests
 import random
+import json
 
 """
 get products information
@@ -164,7 +165,8 @@ def parse(products):
             print "no benefits for product: " + product['name']
             products.remove(product)
 
-    print "PARSE PRODUCTS DONE!"
+    print "PARSE PRODUCTS DONE! Product list: "
+    print json.dumps(products)
     return products
 
 
