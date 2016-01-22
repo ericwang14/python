@@ -16,7 +16,7 @@ search_key = 'isotonix'
 search_url = 'https://api.shop.com/sites/v1/search/Term/{0}'
 
 
-def get_response(url, repeat_time=3):
+def get_response(url, repeat_time=5):
     """
     get response for given url
     :param url   - request url
@@ -131,8 +131,23 @@ def parse(products):
     for product in products:
         try:
             if "benefits" in product and len(product['benefits']) > 0:
+                product['original_benefits'] = product['benefits']
                 selector = etree.HTML(product['benefits'])
                 product['benefits'] = selector.xpath('//ul/li/text()')
+                if 'benefits' not in product or len(product['benefits']) <= 0:
+                    product['benefits'] = selector.xpath('//li/*/text()')
+                if 'benefits' not in product or len(product['benefits']) <= 0:
+                    product['benefits'] = selector.xpath('//ul/li/*/text()')
+                if 'benefits' not in product or len(product['benefits']) <= 0:
+                    product['benefits'] = selector.xpath('//ul/li/div/text()')
+                if 'benefits' not in product or len(product['benefits']) <= 0:
+                    product['benefits'] = selector.xpath('//p/text()')
+                if 'benefits' not in product or len(product['benefits']) <= 0:
+                    product['benefits'] = selector.xpath('//strong/text()')
+                if 'benefits' not in product or len(product['benefits']) <= 0:
+                    product['benefits'] = selector.xpath('//p/strong/text()')
+                if 'benefits' not in product or len(product['benefits']) <= 0:
+                    product['benefits'] = selector.xpath('//p/*/strong/text()')
                 if 'benefits' not in product or len(product['benefits']) <= 0:
                     benefits_elms = selector.xpath('//div[@id="benefits"]/*/li')
                     if isinstance(benefits_elms, list):
@@ -140,6 +155,11 @@ def parse(products):
                             [text for elm in benefits_elms for text in elm.itertext() if elm])
         except KeyError as e:
             print e
+
+    for product in products:
+        if "benefits" not in product or len(product['benefits']) <= 0:
+            print "no benefits for product: " + product['name']
+            products.remove(product)
 
     print "PARSE PRODUCTS DONE!"
     return products
