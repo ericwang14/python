@@ -138,8 +138,6 @@ def parse(products):
                     if isinstance(benefits_elms, list):
                         product['benefits'] = ' '.join(
                             [text for elm in benefits_elms for text in elm.itertext() if elm])
-            else:
-                products.remove(product)
         except KeyError as e:
             print e
 
