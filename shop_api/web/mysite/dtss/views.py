@@ -32,6 +32,8 @@ pwd = "wanggang1224"
 category_list = ['Isotonix', 'Motives', 'Snap', 'Tls', 'Prime',
                  'Fixx', 'DNA Miracles', 'Cellular Laboratories']
 
+default_question_count = 10
+
 
 def index(request):
     request.session.clear()
@@ -102,8 +104,11 @@ def main_question(request, question_id):
     :return:
     """
     selected_categories = request.POST.getlist('categories')
+    question_count = default_question_count
     if selected_categories:
         _load_product(request, selected_categories)
+        if question_count > request.session.get('product_count'):
+            question_count = request.session.get('product_count')
 
     if not request.session.get('products', None):
         return HttpResponseRedirect(reverse('dtss:index'))
@@ -116,7 +121,7 @@ def main_question(request, question_id):
     if int(question_id) <= 0:
         return HttpResponseRedirect(reverse('dtss:question', args=(1,)))
 
-    if int(question_id) > 10:
+    if int(question_id) > question_count:
         _update_question_answer(request, int(question_id))
 
         user = User.objects.get(pk=request.session.get("user_id"))
@@ -128,9 +133,14 @@ def main_question(request, question_id):
     products = request.session.get('products')
     product = random.choice(products)
 
-    while 'benefits' not in product or len(product['benefits']) <= 0 \
-            or (is_product_used(request, product)):
+    while 'benefits' not in product or len(product['benefits']) <= 0:
         product = random.choice(products)
+
+    # remove product from product list it is already used
+    try:
+        products.remove(product)
+    except ValueError:
+        pass
 
     benefit = random.choice(product['benefits'])
     while len(benefit.split(" ")) < 4:
@@ -172,8 +182,7 @@ def _update_question_answer(request, question_id):
     question_id -= 1
     answer = request.POST.get('answer', None)
     right_product = request.session.get(str(question_id))['right_product']
-    if answer and answer == right_product['benefit']:
-        request.session.get(str(question_id))['is_correct'] = True
+    request.session.get(str(question_id))['is_correct'] = (answer and answer == right_product['benefit'])
 
 
 def _load_product(request, selected_categories):
@@ -185,6 +194,7 @@ def _load_product(request, selected_categories):
     if not products:
         products = product_search.get_products(selected_categories)
         request.session['products'] = products
+        request.session['product_count'] = len(products)
     return products
 
 
