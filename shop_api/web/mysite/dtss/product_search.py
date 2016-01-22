@@ -109,19 +109,20 @@ def build_product(original_product):
     }
 
     if len(extended_descriptions) > 0:
-        if extended_descriptions[0]['caption'].upper() == 'Benefits'.upper() \
-                and 'items' in extended_descriptions[0] and len(extended_descriptions[0]['items']):
-            product['benefits'] = extended_descriptions[0]['items'][0]['description']
-            return product
+        for extended_description in extended_descriptions:
+            if extended_description['caption'].upper() == 'Benefits'.upper() \
+                    and 'items' in extended_description and len(extended_description['items']):
+                product['benefits'] = extended_description['items'][0]['description']
+                return product
 
-        if 'siblings' not in extended_descriptions[0]:
-            product['benefits'] = []
-            return product
+            if 'siblings' not in extended_description:
+                product['benefits'] = []
+                return product
 
-        siblings = extended_descriptions[0]['siblings']
-        for sibling in siblings:
-            if sibling['caption'].upper() == 'Benefits'.upper() and len(sibling['items']) > 0:
-                product['benefits'] = sibling['items'][0]['description']
+            siblings = extended_description['siblings']
+            for sibling in siblings:
+                if sibling['caption'].upper() == 'Benefits'.upper() and len(sibling['items']) > 0:
+                    product['benefits'] = sibling['items'][0]['description']
 
     return product
 
