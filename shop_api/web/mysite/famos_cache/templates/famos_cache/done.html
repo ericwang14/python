@@ -6,7 +6,7 @@
 
     <ul>
         {% for url in clear_urls %}
-            <li>{{ url }}</li>
+            <li>{{ forloop.counter }}. {{ url }}</li>
         {% endfor %}
     </ul>
 {% endblock %}
