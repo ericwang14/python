@@ -6,6 +6,7 @@ from lxml import etree
 import requests
 import random
 import json
+import time
 
 from concurrent import futures
 
@@ -28,6 +29,7 @@ def get_response(url, repeat_time=5):
     if repeat_time <= 0:
         return
 
+    time.sleep(0.1)
     try:
         r = requests.request(method='GET', url=url, headers={'apikey': api_key})
         if r.status_code != 200:
@@ -101,7 +103,7 @@ def get_products(categories):
         num_product = len(product_urls)
     print 'GET PRODUCT URLs DONE!'
 
-    with futures.ThreadPoolExecutor(max_workers=100) as executor:
+    with futures.ThreadPoolExecutor(max_workers=10) as executor:
             # Start the load operations and mark each future with its URL
             future_to_url = {executor.submit(get_response, api_domain + url): url for url in
                              random.sample(product_urls, num_product)}
