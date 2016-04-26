@@ -183,7 +183,7 @@ def parse(products):
             products.remove(product)
 
     print "PARSE PRODUCTS DONE! Product list: " + str(len(products))
-    print json.dumps(products)
+    # print json.dumps(products)
     return products
 
 
