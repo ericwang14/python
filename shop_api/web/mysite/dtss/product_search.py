@@ -7,6 +7,8 @@ import requests
 import random
 import json
 
+from concurrent import futures
+
 """
 get products information
 """
@@ -47,8 +49,16 @@ def get_search_items(categories=search_key):
     rep = []
     search_items = []
     if categories and len(categories) > 0:
-        for category in categories:
-            rep.append(get_response(search_url.format(category)))
+        with futures.ThreadPoolExecutor(max_workers=5) as executor:
+            # Start the load operations and mark each future with its URL
+            future_to_url = {executor.submit(get_response, search_url.format(category)): category for category in
+                             categories}
+            for future in futures.as_completed(future_to_url):
+                url = future_to_url[future]
+                try:
+                    rep.append(future.result())
+                except Exception as exc:
+                    print('%r generated an exception: %s' % (url, exc))
     else:
         rep = get_response(search_url.format(search_key))
     if len(rep) <= 0:
@@ -91,10 +101,18 @@ def get_products(categories):
         num_product = len(product_urls)
     print 'GET PRODUCT URLs DONE!'
 
-    for url in random.sample(product_urls, num_product):
-        product = build_product(get_response(api_domain + url))
-        if product:
-            products.append(product)
+    with futures.ThreadPoolExecutor(max_workers=30) as executor:
+            # Start the load operations and mark each future with its URL
+            future_to_url = {executor.submit(get_response, api_domain + url): url for url in
+                             random.sample(product_urls, num_product)}
+            for future in futures.as_completed(future_to_url):
+                url = future_to_url[future]
+                try:
+                    product = build_product(future.result())
+                    if product:
+                        products.append(product)
+                except Exception as exc:
+                    print('%r generated an exception: %s' % (url, exc))
     return parse(products)
 
 
@@ -111,19 +129,16 @@ def build_product(original_product):
 
     if len(extended_descriptions) > 0:
         for extended_description in extended_descriptions:
-            if extended_description['caption'].upper() == 'Benefits'.upper() \
+            if 'caption' in extended_description and extended_description['caption'].upper() == 'Benefits'.upper() \
                     and 'items' in extended_description and len(extended_description['items']):
                 product['benefits'] = extended_description['items'][0]['description']
                 return product
 
-            if 'siblings' not in extended_description:
-                product['benefits'] = []
-                return product
-
-            siblings = extended_description['siblings']
-            for sibling in siblings:
-                if sibling['caption'].upper() == 'Benefits'.upper() and len(sibling['items']) > 0:
-                    product['benefits'] = sibling['items'][0]['description']
+            if 'siblings' in extended_description:
+                siblings = extended_description['siblings']
+                for sibling in siblings:
+                    if sibling['caption'].upper() == 'Benefits'.upper() and len(sibling['items']) > 0:
+                        product['benefits'] = sibling['items'][0]['description']
 
     return product
 
