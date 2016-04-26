@@ -96,12 +96,12 @@ def get_products(categories):
     """
     products = []
     product_urls = get_product_urls(get_search_items(categories))
-    num_product = 30
-    if len(product_urls) < 30:
+    num_product = 100
+    if len(product_urls) < 100:
         num_product = len(product_urls)
     print 'GET PRODUCT URLs DONE!'
 
-    with futures.ThreadPoolExecutor(max_workers=30) as executor:
+    with futures.ThreadPoolExecutor(max_workers=100) as executor:
             # Start the load operations and mark each future with its URL
             future_to_url = {executor.submit(get_response, api_domain + url): url for url in
                              random.sample(product_urls, num_product)}
@@ -180,7 +180,7 @@ def parse(products):
             print "no benefits for product: " + product['name']
             products.remove(product)
 
-    print "PARSE PRODUCTS DONE! Product list: "
+    print "PARSE PRODUCTS DONE! Product list: " + str(len(products))
     print json.dumps(products)
     return products
 
