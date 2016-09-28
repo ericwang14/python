@@ -1,7 +1,6 @@
 *.pyc
 *.py~
 *.swp
-*db.sqlite3
 ENV/*
 .idea
 */.idea/*
